@@ -8,6 +8,6 @@ let debounceId = 1;
 export default function() {
   let name = "vue-base_debounce-" + debounceId++;
   return function(handler, delay) {
-  	debounce(name, handler, delay);
+    debounce(name, handler, delay);
   };
 }

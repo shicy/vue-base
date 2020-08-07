@@ -1,4 +1,4 @@
-// utils
+// Utils
 import clearLoadingFlag from "./src/util/clearLoadingFlag";
 import debounce from "./src/util/debounce";
 import debounceInstance from "./src/util/debounceInstance";
@@ -44,3 +44,12 @@ export {
   trimToEmpty,
   unique
 };
+
+// Request
+import { get as $get, post as $post } from "./src/tool/Request";
+export { $get, $post };
+
+// Components
+import SearchForm from "./src/components/form/SearchForm.vue";
+import MyTable from "./src/components/table/MyTable.vue";
+export { SearchForm, MyTable };
