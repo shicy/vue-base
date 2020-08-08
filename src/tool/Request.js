@@ -5,6 +5,7 @@
 
 import QueryString from "querystring";
 import axios from "axios";
+import { Message } from "view-design";
 
 export function get(url, params, callback) {
   return doRequest("get", url, params, callback);
@@ -30,33 +31,51 @@ function doRequest(method, url, params, callback) {
 
   if (typeof callback == "function") {
     doRequestInner(method, url, params, (err, data, pageInfo, response) => {
-      callback(err, data, pageInfo, response);
+      if (callback(err, data, pageInfo, response) !== false) {
+        if (err) {
+          showErrorMsg(err.msg || err);
+        }
+      }
     });
   } else {
     return new Promise((resolve, reject) => {
       doRequestInner(method, url, params, (err, data, pageInfo, response) => {
-        if (err) {
-          let errmsg = err.msg || err;
-          reject({ errmsg, err, code: err.code, data, response });
-        } else {
+        if (!err) {
           let result = { data, response };
           if (pageInfo) {
             result.datas = data;
             result.pageInfo = pageInfo;
           }
           resolve(result);
+        } else {
+          let isPreventDefault = false;
+          let result = { err, code: err.code, data, response };
+          result.errmsg = err.msg || err;
+          result.preventDefault = function() {
+            isPreventDefault = true;
+          };
+          reject(result);
+          if (!isPreventDefault) {
+            showErrorMsg(result.errmsg);
+          }
         }
       });
     });
   }
 }
 
+function showErrorMsg(errmsg) {
+  Message.error({ content: errmsg, duration: 6 });
+}
+
 function doRequestInner(method, url, params, callback) {
-  console.log("request: ", method, url, params);
+  // console.log("request: ", method, url, params);
   let options = { method, url, data: params };
   axios(options)
     .then(response => {
-      console.log("==>", response);
+      if (response && response.data && response.data.code != 200) {
+        return Promise.reject(response);
+      }
       let result = doResponseSuccess(response);
       callback(false, result.data, result.pageInfo, response);
     })
@@ -68,16 +87,22 @@ function doRequestInner(method, url, params, callback) {
 }
 
 function doResponseSuccess(response) {
-  console.log(response);
+  // console.log(response);
+  let result = response.data || {};
+  return { data: result.data, msg: result.msg, pageInfo: result.pageInfo };
 }
 
 function doResponseError(response) {
-  console.error(response, response.status);
-  if (response.status == 404 || /network error/i.test(response.statusText)) {
-    return { code: 404, msg: "网络错误！", data: response.data };
+  console.error(response);
+  let error = {};
+  if (response.status == 404) {
+    error = { code: 404, msg: "网络错误！" };
+    return { err: error, data: response.data };
+  } else if (/(network|internal).*error/i.test(response.statusText)) {
+    error = { code: response.status, msg: response.data };
+    return { err: error, data: response.data };
   }
   let result = response.data || {};
-  let error = {};
   error.code = result.code || response.status || 1;
   error.msg = result.msg || response.message || "出错了!_!";
   return { err: error, data: result.data || null };
