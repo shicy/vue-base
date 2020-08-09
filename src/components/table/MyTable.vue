@@ -46,9 +46,9 @@ export default {
     columns: Array,
     // 分页大小，默认为20，可以是“auto”自动根据视图计算分页大小
     size: String,
-    // 表头高度，用于计算分页大小，默认为40
+    // 表头高度，用于计算分页大小，默认为32
     headHeight: Number,
-    // 行高度，用于计算分页大小，默认为48
+    // 行高度，用于计算分页大小，默认为40
     rowHeight: Number,
     // 空文本提示
     emptyText: String,
@@ -175,10 +175,10 @@ export default {
     initPageSize() {
       if (this.size == "auto") {
         let height = parseInt(this.tableHeight) || 0;
-        height -= parseInt(this.headHeight) || 40; // 表头高度
+        height -= parseInt(this.headHeight) || 32; // 表头高度
         height -= this.isPageVisible ? 0 : 60; // 分页
         if (height > 0) {
-          let rowHeight = parseInt(this.rowHeight) || 48;
+          let rowHeight = parseInt(this.rowHeight) || 40;
           this.pageInfo.size = Math.floor(height / rowHeight);
           return;
         }
@@ -272,8 +272,36 @@ export default {
       display: none;
     }
 
+    th {
+      height: 32px;
+      padding-top: 6px;
+      padding-bottom: 4px;
+      font-weight: normal;
+      overflow: visible;
+
+      .ivu-table-cell {
+        vertical-align: top;
+        line-height: 21px;
+      }
+    }
+
+    td {
+      height: 40px;
+      border-bottom: 1px solid #f6f6f6;
+    }
+
     tr:last-child td {
       border-bottom: 0px;
+    }
+
+    .ivu-table-header-resizable:before {
+      content: "";
+      position: absolute;
+      height: 16px;
+      left: 5px;
+      top: 50%;
+      margin-top: -8px;
+      border-left: 1px solid rgba(0, 0, 0, 0.15);
     }
   }
 
