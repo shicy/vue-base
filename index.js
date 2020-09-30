@@ -47,7 +47,9 @@ export {
 
 // Request
 import { get as $get, post as $post } from "./src/tool/Request";
-export { $get, $post };
+import EventBus from "./src/tool/EventBus.vue";
+import PageLoading from "./src/tool/PageLoading.vue";
+export { $get, $post, EventBus, PageLoading };
 
 // Components
 import SearchForm from "./src/components/form/SearchForm.vue";
