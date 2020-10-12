@@ -54,4 +54,5 @@ export { $get, $post, EventBus, PageLoading };
 // Components
 import SearchForm from "./src/components/form/SearchForm.vue";
 import MyTable from "./src/components/table/MyTable.vue";
-export { SearchForm, MyTable };
+import ListView from "./src/components/list/ListView.vue";
+export { SearchForm, MyTable, ListView };

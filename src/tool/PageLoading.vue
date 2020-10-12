@@ -1,16 +1,13 @@
 <!-- 页面加载进度 -->
 
 <script>
-import Vue from "vue";
-
-const instance = new Vue();
 let isLoading = false;
 let lastLoadingTimerId = 0;
 
 export default {
-  start(force) {
+  start(context, force) {
     if (!isLoading || force) {
-      instance.$Loading.start();
+      context.$Loading.start();
       isLoading = true;
 
       if (lastLoadingTimerId) {
@@ -19,15 +16,15 @@ export default {
 
       lastLoadingTimerId = setTimeout(() => {
         lastLoadingTimerId = 0;
-        instance.$Loading.finish();
+        context.$Loading.finish();
         isLoading = false;
       }, 5000);
     }
   },
 
-  finish() {
+  finish(context) {
     if (isLoading) {
-      instance.$Loading.finish();
+      context.$Loading.finish();
       isLoading = false;
     }
 
@@ -37,9 +34,9 @@ export default {
     }
   },
 
-  error() {
+  error(context) {
     if (isLoading) {
-      instance.$Loading.error();
+      context.$Loading.error();
       isLoading = false;
     }
 
@@ -49,8 +46,8 @@ export default {
     }
   },
 
-  percent(value) {
-    instance.$Loading.update(value);
+  percent(context, value) {
+    context.$Loading.update(value);
   }
 };
 </script>
