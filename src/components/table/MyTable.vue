@@ -294,6 +294,11 @@ export default {
       border-bottom: 0px;
     }
 
+    .ivu-table-cell {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
     .ivu-table-header-resizable:before {
       content: "";
       position: absolute;

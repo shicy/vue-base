@@ -127,6 +127,7 @@ export default {
 .sui-vue-searchform {
   .search-item {
     display: inline-block;
+    width: 200px;
     margin-left: 20px;
 
     &:first-child {
@@ -137,7 +138,7 @@ export default {
       display: flex;
       flex-direction: row;
       align-items: center;
-      width: 200px;
+      width: 100%;
 
       dt {
         flex: none;

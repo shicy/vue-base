@@ -2,35 +2,73 @@
 
 <template>
   <div class="sui-vue-listview">
-    <MyTable :columns="columns" />
+    <div v-if="isTopBarVisible" class="topbar">
+      <div v-if="isSearchBarVisible" class="searchbar">
+        <SearchForm :datas="searchs" />
+      </div>
+      <div v-if="isButtonBarVisible" class="buttonbar">
+        <ButtonBar :datas="buttons" />
+      </div>
+    </div>
+    <div class="listview">
+      <MyTable :columns="columns" />
+    </div>
   </div>
 </template>
 
 <script>
-import { MyTable } from "@scyui/vue-base";
-
-const tableColumns = [
-  { key: "name", title: "租户名称" },
-  { key: "mobile", title: "手机号码" },
-  { key: "email", title: "邮箱" },
-  { key: "code", title: "编码" },
-  { key: "secret", title: "密钥" },
-  { key: "ops", title: "操作" }
-];
+import MyTable from "../table/MyTable.vue";
+import SearchForm from "../form/SearchForm.vue";
+import ButtonBar from "../form/ButtonBar.vue";
 
 export default {
-  components: { MyTable },
+  components: { MyTable, SearchForm, ButtonBar },
+  props: {
+    columns: Array,
+    searchs: Array,
+    buttons: Array
+  },
 
   data() {
-    return {
-      columns: tableColumns
-    };
+    return {};
+  },
+
+  computed: {
+    isTopBarVisible() {
+      return this.isSearchBarVisible || this.isButtonBarVisible;
+    },
+
+    isSearchBarVisible() {
+      return this.searchs && this.searchs.length > 0;
+    },
+
+    isButtonBarVisible() {
+      return this.buttons && this.buttons.length > 0;
+    }
   }
 };
 </script>
 
 <style lang="scss">
 .sui-vue-listview {
+  display: flex;
+  flex-direction: column;
   height: 100%;
+
+  > .topbar {
+    flex: none;
+    min-height: 32px;
+    padding-bottom: 10px;
+
+    .buttonbar {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+    }
+  }
+
+  > .listview {
+    flex: 1;
+  }
 }
 </style>
