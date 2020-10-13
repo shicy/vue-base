@@ -52,7 +52,8 @@ import PageLoading from "./src/tool/PageLoading.vue";
 export { $get, $post, EventBus, PageLoading };
 
 // Components
+import ButtonBar from "./src/components/form/ButtonBar.vue";
 import SearchForm from "./src/components/form/SearchForm.vue";
 import MyTable from "./src/components/table/MyTable.vue";
 import ListView from "./src/components/list/ListView.vue";
-export { SearchForm, MyTable, ListView };
+export { ButtonBar, SearchForm, MyTable, ListView };
