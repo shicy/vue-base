@@ -45,11 +45,12 @@ export {
   unique
 };
 
-// Request
+// Tool
 import { get as $get, post as $post } from "./src/tool/Request";
 import EventBus from "./src/tool/EventBus.vue";
+import Message from "./src/tool/MessageBar.vue";
 import PageLoading from "./src/tool/PageLoading.vue";
-export { $get, $post, EventBus, PageLoading };
+export { $get, $post, EventBus, Message, PageLoading };
 
 // Components
 import ButtonBar from "./src/components/form/ButtonBar.vue";

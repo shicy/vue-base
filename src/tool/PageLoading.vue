@@ -1,13 +1,15 @@
 <!-- 页面加载进度 -->
 
 <script>
+import { LoadingBar } from "view-design";
+
 let isLoading = false;
 let lastLoadingTimerId = 0;
 
 export default {
-  start(context, force) {
+  start(force) {
     if (!isLoading || force) {
-      context.$Loading.start();
+      LoadingBar.start();
       isLoading = true;
 
       if (lastLoadingTimerId) {
@@ -16,15 +18,15 @@ export default {
 
       lastLoadingTimerId = setTimeout(() => {
         lastLoadingTimerId = 0;
-        context.$Loading.finish();
+        LoadingBar.finish();
         isLoading = false;
       }, 5000);
     }
   },
 
-  finish(context) {
+  finish() {
     if (isLoading) {
-      context.$Loading.finish();
+      LoadingBar.finish();
       isLoading = false;
     }
 
@@ -34,9 +36,9 @@ export default {
     }
   },
 
-  error(context) {
+  error() {
     if (isLoading) {
-      context.$Loading.error();
+      LoadingBar.error();
       isLoading = false;
     }
 
@@ -46,8 +48,8 @@ export default {
     }
   },
 
-  percent(context, value) {
-    context.$Loading.update(value);
+  percent(value) {
+    LoadingBar.update(value);
   }
 };
 </script>
