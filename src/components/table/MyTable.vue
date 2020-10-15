@@ -233,7 +233,7 @@ export default {
           this.models = result.datas || [];
 
           this.pageInfo.page = page;
-          this.pageInfo.total = pageInfo.total || 0;
+          this.pageInfo.total = (pageInfo && pageInfo.total) || 0;
 
           if (!this.models.length && page > 1) {
             this.loadData(page - 1, this.lastLoadCallback);

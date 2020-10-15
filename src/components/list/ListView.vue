@@ -11,7 +11,17 @@
       </div>
     </div>
     <div class="listview">
-      <MyTable :columns="columns" />
+      <MyTable
+        :action="action"
+        :params="params"
+        :method="method"
+        :columns="columns"
+        :size="size"
+        :head-height="headHeight"
+        :row-height="rowHeight"
+        :empty-text="emptyText"
+        :auto-load="autoLoad"
+      />
     </div>
   </div>
 </template>
@@ -24,9 +34,31 @@ import ButtonBar from "../form/ButtonBar.vue";
 export default {
   components: { MyTable, SearchForm, ButtonBar },
   props: {
+    // 查询接口
+    action: String,
+    // 默认查询参数，默认是get
+    params: Object,
+    // 接口请求方式
+    method: String,
+    // 列定义
     columns: Array,
+    // 列表查询配置项
     searchs: Array,
-    buttons: Array
+    // 列表上面的按钮配置项
+    buttons: Array,
+    // 分页大小，默认为20，可以是“auto”自动根据视图计算分页大小
+    size: String,
+    // 表头高度，用于计算分页大小，默认为32
+    headHeight: Number,
+    // 行高度，用于计算分页大小，默认为40
+    rowHeight: Number,
+    // 空文本提示
+    emptyText: String,
+    // 是否自动加载，默认为true
+    autoLoad: {
+      type: Boolean,
+      default: () => true
+    }
   },
 
   data() {
