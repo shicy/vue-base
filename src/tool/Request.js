@@ -7,12 +7,33 @@ import QueryString from "querystring";
 import axios from "axios";
 import { Message } from "view-design";
 
+let beforeHandlers = [];
+let afterHandlers = [];
+
 export function get(url, params, callback) {
   return doRequest("get", url, params, callback);
 }
 
 export function post(url, params, callback) {
   return doRequest("post", url, params, callback);
+}
+
+export function before(handler) {
+  beforeHandlers.push(handler);
+  return {
+    remove: () => {
+      removeHandler(beforeHandlers, handler);
+    }
+  };
+}
+
+export function after(handler) {
+  afterHandlers.push(handler);
+  return {
+    remove: () => {
+      removeHandler(afterHandlers, handler);
+    }
+  };
 }
 
 ///////////////////////////////////////////////////////////
@@ -71,19 +92,73 @@ function showErrorMsg(errmsg) {
 function doRequestInner(method, url, params, callback) {
   // console.log("request: ", method, url, params);
   let options = { method, url, data: params };
-  axios(options)
-    .then(response => {
-      if (response && response.data && response.data.code != 200) {
-        return Promise.reject(response);
-      }
-      let result = doResponseSuccess(response);
-      callback(false, result.data, result.pageInfo, response);
+  doRequestBefore(options)
+    .then(() => {
+      axios(options)
+        .then(response => {
+          if (response && response.data && response.data.code != 200) {
+            return Promise.reject(response);
+          }
+          let result = doResponseSuccess(response);
+          callback(false, result.data, result.pageInfo, response);
+          doRequestAfter(options, result);
+        })
+        .catch(response => {
+          response = response.response || response;
+          let result = doResponseError(response);
+          callback(result.err, result.data, null, response);
+          doRequestAfter(options, result);
+        });
     })
-    .catch(response => {
-      response = response.response || response;
-      let result = doResponseError(response);
-      callback(result.err, result.data, null, response);
+    .catch(err => {
+      callback(err || "canceled");
     });
+}
+
+function doRequestBefore(options) {
+  return new Promise((resolve, reject) => {
+    let handlers = [].concat(beforeHandlers);
+    let loop = index => {
+      if (index < handlers.length) {
+        let temp = handlers[index](options);
+        if (temp && temp instanceof Promise) {
+          temp
+            .then(() => {
+              loop(index + 1);
+            })
+            .catch(err => {
+              reject(err);
+            });
+        } else {
+          loop(index + 1);
+        }
+      } else {
+        resolve();
+      }
+    };
+    loop(0);
+  });
+}
+
+function doRequestAfter(options, result) {
+  let handlers = [].concat(afterHandlers);
+  let loop = index => {
+    if (index < handlers.length) {
+      let temp = handlers[index](options, result);
+      if (temp && temp instanceof Promise) {
+        temp
+          .then(() => {
+            loop(index + 1);
+          })
+          .catch(() => {
+            loop(index + 1);
+          });
+      } else {
+        loop(index + 1);
+      }
+    }
+  };
+  loop(0);
 }
 
 function doResponseSuccess(response) {
@@ -93,7 +168,7 @@ function doResponseSuccess(response) {
 }
 
 function doResponseError(response) {
-  console.error(response);
+  console.warn(response);
   let error = {};
   if (response.status == 404) {
     error = { code: 404, msg: "网络错误！" };
@@ -106,4 +181,13 @@ function doResponseError(response) {
   error.code = result.code || response.status || 1;
   error.msg = result.msg || response.message || "出错了!_!";
   return { err: error, data: result.data || null };
+}
+
+function removeHandler(allHandlers, handler) {
+  for (let i = allHandlers.length - 1; i >= 0; i--) {
+    if (allHandlers == handler) {
+      allHandlers.splice(i, 1);
+      break;
+    }
+  }
 }
