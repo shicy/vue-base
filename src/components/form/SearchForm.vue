@@ -15,7 +15,11 @@
         <dl class="box">
           <dt v-if="item.label">{{ item.label }}</dt>
           <dd>
-            <Input v-model="item.value" :placeholder="item.placeholder" />
+            <Input
+              v-model="item.value"
+              :placeholder="item.placeholder"
+              @on-enter="onKeyEnterHandler"
+            />
           </dd>
         </dl>
       </div>
@@ -107,6 +111,10 @@ export default {
         });
       }
       this.searchItems = items;
+    },
+
+    onKeyEnterHandler() {
+      this.onButtonClickHandler({ name: "search" });
     },
 
     onButtonClickHandler(item) {

@@ -14,6 +14,7 @@
         :data="models"
         :loading="loadingFlag"
         :no-data-text="emptyText"
+        :stripe="showStripe"
       />
     </div>
     <div v-if="isPageVisible" class="pager">
@@ -21,7 +22,7 @@
         :current="pageNo"
         :page-size="pageSize"
         :total="totalCount"
-        size="small"
+        :size="pageStyleInner"
         show-total
         show-elevator
         @on-change="onPageChangeHandler"
@@ -31,8 +32,9 @@
 </template>
 
 <script>
-import { debounceInstance } from "@scyui/vue-base";
-import { $get, $post } from "@scyui/vue-base";
+import debounceInstance from "../../util/debounceInstance";
+import { get as $get, post as $post } from "../../tool/Request";
+import OperColumn from "./OperColumn";
 
 export default {
   props: {
@@ -52,6 +54,13 @@ export default {
     rowHeight: Number,
     // 空文本提示
     emptyText: String,
+    // 斑马纹，默认false
+    showStripe: Boolean,
+    // 分页样式
+    pageStyle: {
+      type: String,
+      default: () => "small"
+    },
     // 是否自动加载，默认为true
     autoLoad: {
       type: Boolean,
@@ -107,7 +116,7 @@ export default {
       }
     },
     size: {
-      // immediate: true,
+      immediate: true,
       handler() {
         this.initPageSize();
       }
@@ -132,6 +141,9 @@ export default {
     },
     isPageVisible() {
       return this.pageCount > 1;
+    },
+    pageStyleInner() {
+      return this.pageStyle == "small" ? "small" : null;
     }
   },
 
@@ -165,6 +177,10 @@ export default {
             if (temp.resizable !== false && temp.width) {
               temp.resizable = true;
             }
+            if (temp.key == "ops") {
+              temp.align = temp.align || "right";
+              temp.render = this.operColumnRenderer;
+            }
             _columns.push(temp);
           });
         }
@@ -184,6 +200,34 @@ export default {
         }
       }
       this.pageInfo.size = parseInt(this.size) || 20;
+    },
+
+    operColumnRenderer(h, params) {
+      let data = params.row;
+      let buttons = [];
+
+      let column = params.column || {};
+      if (column.opers) {
+        if (typeof column.opers == "function") {
+          buttons = column.opers(data) || [];
+        } else if (column.opers instanceof Array) {
+          buttons = buttons.concat(column.opers);
+        }
+      }
+
+      if (buttons.length > 0) {
+        return h(OperColumn, {
+          props: { model: data, buttons: buttons, width: column.operWidth },
+          on: {
+            btnclick: name => {
+              this.$emit("oper", name, data);
+              this.$emit(`oper-${name}`, data);
+            }
+          }
+        });
+      }
+
+      // return h("div");
     },
 
     startAutoLayout() {
@@ -326,6 +370,25 @@ export default {
 
     .ivu-page {
       display: inline-block;
+    }
+
+    .ivu-page-item {
+      border-radius: 2px;
+    }
+
+    .ivu-page-prev {
+      border-radius: 2px;
+    }
+
+    .ivu-page-next {
+      border-radius: 2px;
+    }
+
+    .ivu-page-options-elevator {
+      input {
+        text-align: center;
+        border-radius: 2px;
+      }
     }
   }
 }

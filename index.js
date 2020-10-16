@@ -61,5 +61,6 @@ export { EventBus, Message, PageLoading };
 import ButtonBar from "./src/components/form/ButtonBar.vue";
 import SearchForm from "./src/components/form/SearchForm.vue";
 import MyTable from "./src/components/table/MyTable.vue";
+import OperColumn from "./src/components/table/OperColumn.vue";
 import ListView from "./src/components/list/ListView.vue";
-export { ButtonBar, SearchForm, MyTable, ListView };
+export { ButtonBar, SearchForm, MyTable, ListView, OperColumn };

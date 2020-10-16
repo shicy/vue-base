@@ -1,17 +1,18 @@
 <!-- 列表页面 -->
 
 <template>
-  <div class="sui-vue-listview">
+  <div class="sui-vue-listview" :show-topbar="isTopBarVisible">
     <div v-if="isTopBarVisible" class="topbar">
       <div v-if="isSearchBarVisible" class="searchbar">
-        <SearchForm :datas="searchs" />
+        <SearchForm :datas="searchs" @search="onSearchHandler" />
       </div>
       <div v-if="isButtonBarVisible" class="buttonbar">
-        <ButtonBar :datas="buttons" />
+        <ButtonBar :datas="buttons" @btnclick="onTopBtnHandler" />
       </div>
     </div>
     <div class="listview">
       <MyTable
+        ref="table"
         :action="action"
         :params="params"
         :method="method"
@@ -20,7 +21,12 @@
         :head-height="headHeight"
         :row-height="rowHeight"
         :empty-text="emptyText"
-        :auto-load="autoLoad"
+        :show-stripe="showStripe"
+        :page-style="pageStyle"
+        :auto-load="false"
+        @load-before="onLoadBeforeHandler"
+        @loaded="onLoadResultHandler"
+        @oper="onOperHandler"
       />
     </div>
   </div>
@@ -54,6 +60,10 @@ export default {
     rowHeight: Number,
     // 空文本提示
     emptyText: String,
+    // 斑马纹，默认false
+    showStripe: Boolean,
+    // 分页样式
+    pageStyle: String,
     // 是否自动加载，默认为true
     autoLoad: {
       type: Boolean,
@@ -62,7 +72,17 @@ export default {
   },
 
   data() {
-    return {};
+    return {
+      searchParams: null
+    };
+  },
+
+  mounted() {
+    setTimeout(() => {
+      if (this.autoLoad) {
+        this.doRefresh();
+      }
+    }, 0);
   },
 
   computed: {
@@ -77,19 +97,61 @@ export default {
     isButtonBarVisible() {
       return this.buttons && this.buttons.length > 0;
     }
+  },
+
+  methods: {
+    refresh() {
+      this.doRefresh();
+    },
+
+    reload() {
+      this.$refs.table.reload();
+    },
+
+    onSearchHandler(params) {
+      this.searchParams = Object.assign({}, params);
+      this.$emit("search", this.searchParams);
+      this.doRefresh();
+    },
+
+    onTopBtnHandler(name) {
+      this.$emit("btnclick", name);
+      this.$emit(`btn-${name}`);
+    },
+
+    onLoadBeforeHandler(params) {
+      if (this.searchParams) {
+        Object.assign(params, this.searchParams);
+      }
+      this.$emit("load-before", params);
+    },
+
+    onLoadResultHandler(result) {
+      this.$emit("loaded", result);
+    },
+
+    onOperHandler(name, data) {
+      this.$emit("oper", name, data);
+      this.$emit(`oper-${name}`, data);
+    },
+
+    doRefresh() {
+      this.$refs.table.refresh();
+    }
   }
 };
 </script>
 
 <style lang="scss">
 .sui-vue-listview {
-  display: flex;
-  flex-direction: column;
   height: 100%;
 
   > .topbar {
-    flex: none;
+    position: absolute;
     min-height: 32px;
+    left: 0px;
+    right: 0px;
+    top: 0px;
     padding-bottom: 10px;
 
     .buttonbar {
@@ -100,7 +162,10 @@ export default {
   }
 
   > .listview {
-    flex: 1;
+    height: 100%;
   }
+}
+.sui-vue-listview[show-topbar] {
+  padding-top: 42px;
 }
 </style>

@@ -3,12 +3,14 @@
 <template>
   <div class="sui-vue-buttonbar">
     <div v-for="(item, index) in buttons" :key="index" class="item">
-      <Button :name="item.name" :type="item.type">
-        <i
-          v-if="item.icon"
-          class="ic"
-          :style="`background-image: url(${item.icon})`"
-        /><span class="txt">{{ item.label }}</span>
+      <Button
+        :name="item.name"
+        :type="item.type"
+        :disabled="item.disabled"
+        @click="onBtnClickHandler(item)"
+      >
+        <i v-if="item.icon" class="ic" :style="item.icon" />
+        <span class="txt">{{ item.label }}</span>
       </Button>
     </div>
   </div>
@@ -31,10 +33,28 @@ export default {
           if (!data.label) {
             data.label = data.text || data.title || data.name || "" + data;
           }
+          data.disabled = !!data.disabled;
+          if (data.icon === true) {
+            data.icon = "background-image: none";
+          } else if (data.icon) {
+            data.icon = `background-image: url(${data.icon})`;
+          }
           _buttons.push(data);
         });
       }
       return _buttons;
+    }
+  },
+
+  methods: {
+    onBtnClickHandler(item) {
+      if (!item.disabled) {
+        if (typeof item.handler == "function") {
+          item.handler();
+        }
+        this.$emit("btnclick", item.name, item);
+        this.$emit(`btn-${item.name}`, item);
+      }
     }
   }
 };
