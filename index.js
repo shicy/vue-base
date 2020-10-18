@@ -53,7 +53,7 @@ export { $get, $post, beforeRequest, afterRequest };
 
 // Tool
 import EventBus from "./src/tool/EventBus.vue";
-import Message from "./src/tool/MessageBar.vue";
+import Message from "./src/tool/MessageBox.vue";
 import PageLoading from "./src/tool/PageLoading.vue";
 export { EventBus, Message, PageLoading };
 
