@@ -54,8 +54,9 @@ export { $get, $post, beforeRequest, afterRequest };
 // Tool
 import EventBus from "./src/tool/EventBus.vue";
 import Message from "./src/tool/MessageBox.vue";
+import Waiting from "./src/tool/Waiting.vue";
 import PageLoading from "./src/tool/PageLoading.vue";
-export { EventBus, Message, PageLoading };
+export { EventBus, Message, Waiting, PageLoading };
 
 // Components
 import ButtonBar from "./src/components/form/ButtonBar.vue";
