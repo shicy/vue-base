@@ -144,6 +144,7 @@ export default {
 
 <style lang="scss">
 .sui-vue-listview {
+  position: relative;
   height: 100%;
 
   > .topbar {
