@@ -5,11 +5,15 @@
     <div
       v-for="(item, index) in showButtons"
       :key="index"
-      class="op"
+      :class="{ op: true, line: item.type == 'line' }"
       :style="{ width: item.width }"
       :disabled="item.disabled"
     >
-      <a class="box" @click="onItemClickHandler(item)">
+      <a
+        v-if="item.type != 'line'"
+        class="box"
+        @click="onItemClickHandler(item)"
+      >
         <i v-if="item.icon" class="ic" :style="item.icon">&nbsp;</i>
         <span class="txt">{{ item.label }}</span>
       </a>
@@ -83,8 +87,7 @@ export default {
 
 <style lang="scss">
 .sui-vue-col-oper {
-  height: 22px;
-  line-height: 22px;
+  line-height: 20px;
 
   .op {
     display: inline-block;
@@ -94,6 +97,12 @@ export default {
     &:first-child {
       margin-left: 0px;
     }
+  }
+
+  .op.line {
+    display: block;
+    height: 0px;
+    margin-left: 0px;
   }
 
   .box {
