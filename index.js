@@ -2,6 +2,7 @@
 import clearLoadingFlag from "./src/util/clearLoadingFlag";
 import debounce from "./src/util/debounce";
 import debounceInstance from "./src/util/debounceInstance";
+import fileToDataUrl from "./src/util/fileToDataUrl";
 import find from "./src/util/find";
 import findTreeData from "./src/util/findTreeData";
 import findValue from "./src/util/findValue";
@@ -25,6 +26,7 @@ export {
   clearLoadingFlag,
   debounce,
   debounceInstance,
+  fileToDataUrl,
   find,
   findTreeData,
   findValue,
@@ -64,4 +66,5 @@ import SearchForm from "./src/components/form/SearchForm.vue";
 import MyTable from "./src/components/table/MyTable.vue";
 import OperColumn from "./src/components/table/OperColumn.vue";
 import ListView from "./src/components/list/ListView.vue";
-export { ButtonBar, SearchForm, MyTable, ListView, OperColumn };
+import ImageUploader from "./src/components/upload/ImageUploader.vue";
+export { ButtonBar, SearchForm, MyTable, ListView, OperColumn, ImageUploader };
