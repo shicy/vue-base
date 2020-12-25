@@ -10,6 +10,9 @@
           <div class="op next" @click="onOperNextHandler(index)"></div>
           <div class="op del" @click="onOperDelHandler(index)"></div>
         </div>
+        <div v-if="item.progress >= 0" class="progress">
+          <div class="bar" :style="{ width: `${item.progress}%` }"></div>
+        </div>
       </div>
     </div>
     <div v-if="isUploadVisible" class="upload-view">
@@ -19,6 +22,9 @@
         accept="image/*"
         :show-upload-list="false"
         :before-upload="onUploadBeforeHandler"
+        :on-progress="onUploadProgressHandler"
+        :on-success="onUploadSuccessHandler"
+        :on-error="onUploadErrorHandler"
       >
         <div class="uploadbtn"></div>
       </Upload>
@@ -31,7 +37,7 @@ import fileToDataUrl from "../../util/fileToDataUrl";
 
 let localId = 1;
 
-export default {
+let ImageUploader = {
   props: {
     // 上传接口
     action: String,
@@ -48,8 +54,17 @@ export default {
   data() {
     return {
       models: [],
-      deleteIds: []
+      deleteIds: [],
+
+      currentUploadModel: null,
+      currentUploadCompleteHandler: null
     };
+  },
+
+  watch: {
+    images(value) {
+      this.models = [].concat(value);
+    }
   },
 
   computed: {
@@ -68,7 +83,29 @@ export default {
 
   methods: {
     upload() {
-      return Promise.reject("error");
+      if (!this.uploadUrl) {
+        return Promise.reject({ code: 410, errmsg: "未知上传接口" });
+      }
+
+      if (this.isEmpty) {
+        return Promise.reject({ code: 411, errmsg: "没有图片信息" });
+      }
+
+      return this.doUpload();
+    },
+
+    getImageIds() {
+      let imageIds = [];
+      this.models.forEach(temp => {
+        if (temp.id) {
+          imageIds.push(temp.id);
+        }
+      });
+      return imageIds;
+    },
+
+    getDeleteIds() {
+      return this.deleteIds;
     },
 
     onUploadBeforeHandler(file) {
@@ -80,7 +117,7 @@ export default {
         this.models = [];
       }
 
-      let model = { localId: localId++, file: file };
+      let model = { localId: localId++, file: file, progress: -1 };
       this.models.push(model);
       fileToDataUrl(file, dataUrl => {
         model.url = dataUrl;
@@ -90,6 +127,38 @@ export default {
       return new Promise(resolve => {
         model.uploadHandler = resolve;
       });
+    },
+
+    onUploadProgressHandler(e) {
+      let percent = parseFloat(e.percent) || 0;
+      this.currentUploadModel.progress = Math.min(98, percent);
+    },
+
+    onUploadSuccessHandler(result) {
+      if (result && result.code == 200) {
+        (model => {
+          setTimeout(() => {
+            model.progress = -1; // 重置
+          }, 5000);
+        })(this.currentUploadModel);
+
+        if (this.currentUploadCompleteHandler) {
+          this.currentUploadCompleteHandler(false, result.data);
+        }
+      } else if (this.currentUploadCompleteHandler) {
+        if (!result) {
+          result = { code: 500 };
+        }
+        result.errmsg = result.msg || "上传失败！";
+        this.currentUploadCompleteHandler(result);
+      }
+    },
+
+    onUploadErrorHandler(e) {
+      if (this.currentUploadCompleteHandler) {
+        let error = { code: e.status, errmsg: e.message };
+        this.currentUploadCompleteHandler(error);
+      }
     },
 
     onOperDelHandler(index) {
@@ -106,9 +175,50 @@ export default {
       let model = this.models[index];
       this.models.splice(index, 1);
       this.models.splice(index + 1, 0, model);
+    },
+
+    doUpload() {
+      return new Promise((resolve, reject) => {
+        let loop = index => {
+          if (index < this.models.length) {
+            let model = this.models[index];
+            if (model.uploadHandler) {
+              model.progress = 0;
+              this.currentUploadModel = model;
+              this.currentUploadCompleteHandler = (err, ret) => {
+                // console.log("-->", err, ret);
+                if (err) {
+                  reject(err);
+                } else {
+                  if (ret) {
+                    model.id = ret.uuid || ret.id;
+                    model.url = ret.url || model.url;
+                  }
+                  delete model.uploadHandler;
+                  loop(index + 1);
+                }
+              };
+              model.uploadHandler();
+            } else {
+              loop(index + 1);
+            }
+          } else {
+            resolve({
+              imageIds: this.getImageIds(),
+              deleteIds: this.getDeleteIds()
+            });
+          }
+        };
+        loop(0);
+      });
     }
   }
 };
+
+ImageUploader.NO_API = 410;
+ImageUploader.EMPTY = 411;
+
+export default ImageUploader;
 </script>
 
 <style lang="scss">
@@ -165,7 +275,7 @@ export default {
       background-size: 10px;
       background-position: center;
       background-repeat: no-repeat;
-      opacity: 0.65;
+      opacity: 0.75;
       cursor: pointer;
     }
 
@@ -199,6 +309,21 @@ export default {
       .ops {
         display: block;
       }
+    }
+  }
+
+  .progress {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    padding: 1px 0px;
+    background-color: rgba(255, 255, 255, 0.85);
+
+    .bar {
+      width: 0px;
+      height: 1px;
+      background-color: #038dfb;
     }
   }
 
