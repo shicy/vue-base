@@ -76,9 +76,11 @@ function doRequest(method, url, params, callback) {
             isPreventDefault = true;
           };
           reject(result);
-          if (!isPreventDefault) {
-            showErrorMsg(result.errmsg);
-          }
+          setTimeout(() => {
+            if (!isPreventDefault) {
+              showErrorMsg(result.errmsg);
+            }
+          }, 100);
         }
       });
     });
