@@ -63,8 +63,17 @@ export { EventBus, Message, Waiting, PageLoading };
 // Components
 import ButtonBar from "./src/components/form/ButtonBar.vue";
 import SearchForm from "./src/components/form/SearchForm.vue";
+import Empty from "./src/components/list/Empty.vue";
 import MyTable from "./src/components/table/MyTable.vue";
-import OperColumn from "./src/components/table/OperColumn.vue";
 import ListView from "./src/components/list/ListView.vue";
+import OperColumn from "./src/components/table/OperColumn.vue";
 import ImageUploader from "./src/components/upload/ImageUploader.vue";
-export { ButtonBar, SearchForm, MyTable, ListView, OperColumn, ImageUploader };
+export {
+  ButtonBar,
+  SearchForm,
+  Empty,
+  MyTable,
+  ListView,
+  OperColumn,
+  ImageUploader
+};
