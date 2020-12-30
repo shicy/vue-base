@@ -48,7 +48,9 @@ let ImageUploader = {
     // 是否支持多图片上传
     multiple: Boolean,
     // 百分百布局
-    fix: Boolean
+    fix: Boolean,
+    // 自动上传
+    auto: Boolean
   },
 
   data() {
