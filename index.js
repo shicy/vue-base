@@ -54,11 +54,12 @@ import { after as afterRequest } from "./src/tool/Request";
 export { $get, $post, beforeRequest, afterRequest };
 
 // Tool
+import MyEvent from "./src/tool/MyEvent";
 import EventBus from "./src/tool/EventBus.vue";
 import Message from "./src/tool/MessageBox.vue";
 import Waiting from "./src/tool/Waiting.vue";
 import PageLoading from "./src/tool/PageLoading.vue";
-export { EventBus, Message, Waiting, PageLoading };
+export { MyEvent, EventBus, Message, Waiting, PageLoading };
 
 // Components
 import ButtonBar from "./src/components/form/ButtonBar.vue";
