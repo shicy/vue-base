@@ -33,6 +33,8 @@
 </template>
 
 <script>
+import { Message } from "@scyui/vue-base";
+import MyEvent from "../../tool/MyEvent";
 import fileToDataUrl from "../../util/fileToDataUrl";
 
 let localId = 1;
@@ -63,9 +65,13 @@ let ImageUploader = {
     };
   },
 
+  mounted() {
+    this.doInit();
+  },
+
   watch: {
-    images(value) {
-      this.models = [].concat(value);
+    images() {
+      this.doInit();
     }
   },
 
@@ -84,6 +90,11 @@ let ImageUploader = {
   },
 
   methods: {
+    doInit() {
+      let models = this.images || [];
+      this.models = JSON.parse(JSON.stringify(models));
+    },
+
     upload() {
       if (!this.uploadUrl) {
         return Promise.reject({ code: 410, errmsg: "未知上传接口" });
@@ -112,13 +123,6 @@ let ImageUploader = {
 
     onUploadBeforeHandler(file) {
       // console.log("==>", file);
-      if (!this.multiple) {
-        if (this.models[0] && this.models[0].id) {
-          this.deleteIds.push(this.models[0].id);
-        }
-        this.models = [];
-      }
-
       let model = { localId: localId++, file: file, progress: -1 };
       this.models.push(model);
       fileToDataUrl(file, dataUrl => {
@@ -128,6 +132,16 @@ let ImageUploader = {
 
       return new Promise(resolve => {
         model.uploadHandler = resolve;
+
+        if (this.auto) {
+          this.doOneUpload(model, err => {
+            if (err) {
+              Message.error(err.errmsg);
+            } else {
+              this.$emit("success", model.id);
+            }
+          });
+        }
       });
     },
 
@@ -164,19 +178,29 @@ let ImageUploader = {
     },
 
     onOperDelHandler(index) {
-      this.models.splice(index, 1);
+      let model = this.models[index];
+      MyEvent.call(this, "oper-del", model, "always").then(() => {
+        if (model.id) {
+          this.deleteIds.push(model.id);
+        }
+        this.models.splice(index, 1);
+      });
     },
 
     onOperPrevHandler(index) {
       let model = this.models[index];
-      this.models.splice(index, 1);
-      this.models.splice(index - 1, 0, model);
+      MyEvent.call(this, "oper-prev", model).then(() => {
+        this.models.splice(index, 1);
+        this.models.splice(index - 1, 0, model);
+      });
     },
 
     onOperNextHandler(index) {
       let model = this.models[index];
-      this.models.splice(index, 1);
-      this.models.splice(index + 1, 0, model);
+      MyEvent.call(this, "oper-next", model).then(() => {
+        this.models.splice(index, 1);
+        this.models.splice(index + 1, 0, model);
+      });
     },
 
     doUpload() {
@@ -185,22 +209,13 @@ let ImageUploader = {
           if (index < this.models.length) {
             let model = this.models[index];
             if (model.uploadHandler) {
-              model.progress = 0;
-              this.currentUploadModel = model;
-              this.currentUploadCompleteHandler = (err, ret) => {
-                // console.log("-->", err, ret);
+              this.doOneUpload(model, err => {
                 if (err) {
                   reject(err);
                 } else {
-                  if (ret) {
-                    model.id = ret.uuid || ret.id;
-                    model.url = ret.url || model.url;
-                  }
-                  delete model.uploadHandler;
                   loop(index + 1);
                 }
-              };
-              model.uploadHandler();
+              });
             } else {
               loop(index + 1);
             }
@@ -213,6 +228,25 @@ let ImageUploader = {
         };
         loop(0);
       });
+    },
+
+    doOneUpload(model, callback) {
+      model.progress = 0; // 开始进度条
+      this.currentUploadModel = model;
+      this.currentUploadCompleteHandler = (err, ret) => {
+        // console.log("-->", err, ret);
+        if (err) {
+          callback(err);
+        } else {
+          if (ret) {
+            model.id = ret.uuid || ret.id;
+            model.url = ret.url || model.url;
+          }
+          delete model.uploadHandler;
+          callback(false, ret);
+        }
+      };
+      model.uploadHandler();
     }
   }
 };
