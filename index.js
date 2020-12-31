@@ -15,6 +15,7 @@ import isMatch from "./src/util/isMatch";
 import mapLabelValue from "./src/util/mapLabelValue";
 import offset from "./src/util/offset";
 import remove from "./src/util/remove";
+import setPageFlag from "./src/util/setPageFlag";
 import toDate from "./src/util/toDate";
 import toDateString from "./src/util/toDateString";
 import toTreeData from "./src/util/toTreeData";
@@ -39,6 +40,7 @@ export {
   mapLabelValue,
   offset,
   remove,
+  setPageFlag,
   toDate,
   toDateString,
   toTreeData,
