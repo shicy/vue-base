@@ -11,7 +11,9 @@ import getKey from "./src/util/getKey";
 import getUrlParams from "./src/util/getUrlParams";
 import has from "./src/util/has";
 import hasProperty from "./src/util/hasProperty";
+import isControlKey from "./src/util/isControlKey";
 import isMatch from "./src/util/isMatch";
+import isNumberKey from "./src/util/isNumberKey";
 import mapLabelValue from "./src/util/mapLabelValue";
 import offset from "./src/util/offset";
 import remove from "./src/util/remove";
@@ -36,7 +38,9 @@ export {
   getUrlParams,
   has,
   hasProperty,
+  isControlKey,
   isMatch,
+  isNumberKey,
   mapLabelValue,
   offset,
   remove,
@@ -67,6 +71,7 @@ export { MyEvent, EventBus, Message, Waiting, PageLoading };
 import ButtonBar from "./src/components/form/ButtonBar.vue";
 import SearchForm from "./src/components/form/SearchForm.vue";
 import Empty from "./src/components/list/Empty.vue";
+import Pager from "./src/components/page/Pager.vue";
 import MyTable from "./src/components/table/MyTable.vue";
 import ListView from "./src/components/list/ListView.vue";
 import OperColumn from "./src/components/table/OperColumn.vue";
@@ -75,6 +80,7 @@ export {
   ButtonBar,
   SearchForm,
   Empty,
+  Pager,
   MyTable,
   ListView,
   OperColumn,
