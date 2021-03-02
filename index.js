@@ -61,7 +61,7 @@ export { $get, $post, beforeRequest, afterRequest };
 
 // Tool
 import MyEvent from "./src/tool/MyEvent";
-import EventBus from "./src/tool/EventBus.vue";
+import EventBus from "./src/tool/EventBus";
 import Message from "./src/tool/MessageBox.vue";
 import Waiting from "./src/tool/Waiting.vue";
 import PageLoading from "./src/tool/PageLoading.vue";
