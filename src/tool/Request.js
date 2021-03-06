@@ -6,6 +6,7 @@
 import QueryString from "querystring";
 import axios from "axios";
 import { Message } from "view-design";
+import config from "../config";
 
 let beforeHandlers = [];
 let afterHandlers = [];
@@ -98,8 +99,11 @@ function doRequestInner(method, url, params, callback) {
     .then(() => {
       axios(options)
         .then(response => {
-          if (response && response.data && response.data.code != 200) {
-            return Promise.reject(response);
+          if (config.request.hasOwnProperty("successCode")) {
+            let code = response && response.data && response.data.code;
+            if (code != config.request.successCode) {
+              return Promise.reject(response);
+            }
           }
           let result = doResponseSuccess(response);
           callback(false, result.data, result.pageInfo, response);

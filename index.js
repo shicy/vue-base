@@ -1,3 +1,6 @@
+import config from "./src/config";
+export { config };
+
 // Utils
 import clearLoadingFlag from "./src/util/clearLoadingFlag";
 import debounce from "./src/util/debounce";
