@@ -58,9 +58,10 @@ export {
 
 // Request
 import { get as $get, post as $post } from "./src/tool/Request";
-import { before as beforeRequest } from "./src/tool/Request";
-import { after as afterRequest } from "./src/tool/Request";
-export { $get, $post, beforeRequest, afterRequest };
+import { before as requestBefore } from "./src/tool/Request";
+import { after as requestAfter } from "./src/tool/Request";
+import { format as requestFormater } from "./src/tool/Request";
+export { $get, $post, requestBefore, requestAfter, requestFormater };
 
 // Tool
 import MyEvent from "./src/tool/MyEvent";

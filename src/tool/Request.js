@@ -10,6 +10,7 @@ import config from "../config";
 
 let beforeHandlers = [];
 let afterHandlers = [];
+let formatHandlers = [];
 
 export function get(url, params, callback) {
   return doRequest("get", url, params, callback);
@@ -33,6 +34,15 @@ export function after(handler) {
   return {
     remove: () => {
       removeHandler(afterHandlers, handler);
+    }
+  };
+}
+
+export function format(handler) {
+  formatHandlers.push(handler);
+  return {
+    remove: () => {
+      removeHandler(formatHandlers, handler);
     }
   };
 }
@@ -99,20 +109,27 @@ function doRequestInner(method, url, params, callback) {
     .then(() => {
       axios(options)
         .then(response => {
-          if (config.request.hasOwnProperty("successCode")) {
+          if (
+            Object.prototype.hasOwnProperty.call(config.request, "successCode")
+          ) {
             let code = response && response.data && response.data.code;
             if (code != config.request.successCode) {
               return Promise.reject(response);
             }
           }
+          response.data = doRequestFormat(response.data);
           let result = doResponseSuccess(response);
           callback(false, result.data, result.pageInfo, response);
-          doRequestAfter(options, result);
+          return result;
         })
         .catch(response => {
           response = response.response || response;
+          response.data = doRequestFormat(response.data);
           let result = doResponseError(response);
           callback(result.err, result.data, null, response);
+          return result;
+        })
+        .then(result => {
           doRequestAfter(options, result);
         });
     })
@@ -167,8 +184,18 @@ function doRequestAfter(options, result) {
   loop(0);
 }
 
+function doRequestFormat(data) {
+  formatHandlers.forEach(handler => {
+    let _data = handler(data);
+    if (typeof _data != "undefined") {
+      data = _data;
+    }
+  });
+  return data;
+}
+
 function doResponseSuccess(response) {
-  // console.log(response);
+  console.log(response);
   let result = response.data || {};
   return { data: result.data, msg: result.msg, pageInfo: result.pageInfo };
 }
