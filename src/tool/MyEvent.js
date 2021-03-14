@@ -7,7 +7,7 @@ export default function(name, data, timeout) {
     timeout = 5000;
   } else if (timeout && timeout != "always") {
     timeout = parseInt(timeout) || 0;
-  } else if (timeout !== false) {
+  } else if (timeout !== false && timeout !== 0) {
     if (this.$listeners[name]) {
       if (timeout == "always") {
         timeout = 60 * 60 * 1000;

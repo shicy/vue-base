@@ -32,9 +32,11 @@
 </template>
 
 <script>
+import getKey from "../../util/getKey";
 import debounceInstance from "../../util/debounceInstance";
 import { get as $get, post as $post } from "../../tool/Request";
-import OperColumn from "./OperColumn";
+import OperColumn from "./OperColumn.vue";
+import Checkbox from "../form/Checkbox.vue";
 
 export default {
   props: {
@@ -54,6 +56,14 @@ export default {
     rowHeight: Number,
     // 空文本提示
     emptyText: String,
+    // 是否显示多选框，默认false
+    showChkbox: Boolean,
+    // 是否多选
+    multiple: Boolean,
+    // 主键字段名称
+    keyField: String,
+    // 当前选中项
+    selectedKeys: Array,
     // 斑马纹，默认false
     showStripe: Boolean,
     // 分页样式
@@ -74,6 +84,9 @@ export default {
       pageInfo: { page: 1, total: 0 },
       showColumns: [],
 
+      allCheckedFlag: false,
+      checkedRowKeys: [],
+
       loadingFlag: false,
 
       tableHeight: null,
@@ -83,6 +96,7 @@ export default {
 
   mounted() {
     this.initColumns();
+    this.initCheckedKeys();
     this.startAutoLayout();
     if (this.autoLoad !== false) {
       setTimeout(() => {
@@ -119,6 +133,16 @@ export default {
       immediate: true,
       handler() {
         this.initPageSize();
+      }
+    },
+    showChkbox: {
+      handler() {
+        this.initColumns();
+      }
+    },
+    selectedKeys: {
+      handler() {
+        this.initCheckedKeys();
       }
     }
   },
@@ -170,6 +194,15 @@ export default {
       }
       this.columnDebounce(() => {
         let _columns = [];
+        if (this.showChkbox) {
+          _columns.push({
+            key: "chk",
+            width: 36,
+            fixed: "left",
+            renderHeader: this.chkboxHeaderRenderer,
+            render: this.chkboxColumnRenderer
+          });
+        }
         if (this.columns && this.columns.length > 0) {
           this.columns.forEach(temp => {
             temp = Object.assign({}, temp);
@@ -188,6 +221,24 @@ export default {
       });
     },
 
+    initCheckedKeys() {
+      const selectedKeys = this.selectedKeys || [];
+      for (let i = this.checkedRowKeys.length - 1; i >= 0; i--) {
+        const value = this.checkedRowKeys[i];
+        const index = selectedKeys.findIndex(t => t == value);
+        if (index < 0) {
+          this.checkedRowKeys.splice(i, 1);
+        }
+      }
+      for (let i = 0; i < selectedKeys.length; i++) {
+        const value = selectedKeys[i];
+        const index = this.checkedRowKeys.findIndex(t => t == value);
+        if (index < 0) {
+          this.checkedRowKeys.push(value);
+        }
+      }
+    },
+
     initPageSize() {
       if (this.size == "auto") {
         let height = parseInt(this.tableHeight) || 0;
@@ -200,6 +251,43 @@ export default {
         }
       }
       this.pageInfo.size = parseInt(this.size) || 20;
+    },
+
+    chkboxHeaderRenderer(h) {
+      // console.log("chkboxHeaderRenderer:", this.allCheckedFlag);
+      return h(Checkbox, {
+        props: {
+          value: this.allCheckedFlag,
+          halfCheck: this.checkedRowKeys.length > 0,
+          disabled: !this.multiple
+        },
+        on: {
+          change: e => {
+            if (this.models.length > 0) {
+              e.reject();
+              this.setAllCheckedOrNot(!this.allCheckedFlag);
+              this.$emit("change", this.checkedRowKeys);
+            }
+          }
+        }
+      });
+    },
+
+    chkboxColumnRenderer(h, params) {
+      // console.log("chkboxColumnRenderer", params);
+      let rowId = getKey(params.row);
+      let checked = this.checkedRowKeys.findIndex(t => t == rowId) >= 0;
+      // console.log("chkboxColumnRenderer:", rowId, checked);
+      return h(Checkbox, {
+        props: { value: checked },
+        on: {
+          change: e => {
+            e.reject();
+            this.setRowCheckedOrNot(rowId, !checked);
+            this.$emit("change", this.checkedRowKeys);
+          }
+        }
+      });
     },
 
     operColumnRenderer(h, params) {
@@ -267,12 +355,12 @@ export default {
       this.lastLoadCallback = callback;
 
       let http = this.method == "post" ? $post : $get;
-      http(this.action, params, (err, data, pageInfo) => {
-        // console.log("==>", err, data, pageInfo);
+      http(this.action, params, (err, datas, pageInfo) => {
+        // console.log("==>MyTable:", err, datas, pageInfo);
         if (loadId == this.lastLoadId) {
           this.loadingFlag = false;
 
-          let result = { datas: (!err ? data : null) || [] };
+          let result = { datas: (!err ? datas : null) || [] };
           this.$emit("loaded", result);
           this.models = result.datas || [];
 
@@ -300,8 +388,78 @@ export default {
       return params;
     },
 
+    setAllCheckedOrNot(checked) {
+      if (checked) {
+        this.checkedRowKeys = this.models.map(t => getKey(t));
+        this.allCheckedFlag = true;
+      } else {
+        if (this.checkedRowKeys.length > 0) {
+          this.checkedRowKeys = [];
+        }
+        this.allCheckedFlag = false;
+      }
+    },
+
+    setRowCheckedOrNot(rowId, checked) {
+      const _checked = this.hasCheckedKey(rowId);
+      // console.log("-----<<<", rowId, checked, this.multiple);
+      if (this.multiple) {
+        if (checked) {
+          if (_checked) {
+            return false;
+          }
+          this.checkedRowKeys.push(rowId);
+          this.allCheckedFlag =
+            this.checkedRowKeys.length == this.models.length;
+        } else if (_checked) {
+          this.removeCheckedKey(rowId);
+          this.allCheckedFlag = false;
+        } else {
+          return false;
+        }
+      } else if (checked) {
+        if (_checked) {
+          return false;
+        }
+        this.checkedRowKeys = [rowId];
+        this.allCheckedFlag = false;
+      } else {
+        this.allCheckedFlag = false;
+        if (checked) {
+          if (_checked) {
+            return false;
+          }
+          this.checkedRowKeys = [rowId];
+        } else if (_checked) {
+          this.checkedRowKeys = [];
+        } else {
+          return false;
+        }
+      }
+      return true;
+    },
+
     onPageChangeHandler(page) {
       this.loadData(page);
+    },
+
+    hasCheckedKey(rowId) {
+      for (let i = 0; i < this.checkedRowKeys.length; i++) {
+        if (this.checkedRowKeys[i] == rowId) {
+          return true;
+        }
+      }
+      return false;
+    },
+
+    removeCheckedKey(rowId) {
+      for (let i = this.checkedRowKeys.length - 1; i >= 0; i--) {
+        if (this.checkedRowKeys[i] == rowId) {
+          this.checkedRowKeys.splice(i, 1);
+          return true;
+        }
+      }
+      return false;
     }
   }
 };
@@ -318,14 +476,14 @@ export default {
 
     th {
       height: 32px;
-      padding-top: 6px;
-      padding-bottom: 4px;
+      padding-top: 0px;
+      padding-bottom: 0px;
       font-weight: normal;
       overflow: visible;
 
       .ivu-table-cell {
         vertical-align: top;
-        line-height: 21px;
+        line-height: 20px;
       }
     }
 
@@ -351,6 +509,28 @@ export default {
       top: 50%;
       margin-top: -8px;
       border-left: 1px solid rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  .ivu-table-stripe {
+    td {
+      border-bottom: 0px;
+    }
+  }
+
+  .ivu-table-fixed {
+    box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3);
+
+    &:before {
+      display: none;
+    }
+  }
+
+  .ivu-table-fixed-right {
+    box-shadow: 0px -1px 1px 0px rgba(0, 0, 0, 0.3);
+
+    &:before {
+      display: none;
     }
   }
 
