@@ -117,14 +117,14 @@ function doRequestInner(method, url, params, callback) {
               return Promise.reject(response);
             }
           }
-          response.data = doRequestFormat(response.data);
-          let result = doResponseSuccess(response);
+          response.data = doRequestFormat(url, params, response.data);
+          let result = doResponseSuccess(url, params, response);
           callback(false, result.data, result.pageInfo, response);
           return result;
         })
         .catch(response => {
           response = response.response || response;
-          response.data = doRequestFormat(response.data);
+          response.data = doRequestFormat(url, params, response.data);
           let result = doResponseError(response);
           callback(result.err, result.data, null, response);
           return result;
@@ -184,18 +184,18 @@ function doRequestAfter(options, result) {
   loop(0);
 }
 
-function doRequestFormat(data) {
+function doRequestFormat(url, params, result) {
   formatHandlers.forEach(handler => {
-    let _data = handler(data);
-    if (typeof _data != "undefined") {
-      data = _data;
+    let data = handler(url, params, result);
+    if (typeof data != "undefined") {
+      result = data;
     }
   });
-  return data;
+  return result;
 }
 
-function doResponseSuccess(response) {
-  console.log(response);
+function doResponseSuccess(url, params, response) {
+  // console.log(response);
   let result = response.data || {};
   return { data: result.data, msg: result.msg, pageInfo: result.pageInfo };
 }
